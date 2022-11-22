@@ -1,5 +1,6 @@
 (ns election-lifecycle.line
-  (:require [quil.core :as q]))
+  (:require [quil.core :as q]
+            [election-lifecycle.utils :as u]))
 
 (def x first)
 (def y second)
@@ -34,18 +35,12 @@
   [(+ (x p1) (x p2))
    (+ (y p1) (y p2))])
 
-(defn line-length [p1 p2]
-  (Math/sqrt (+ (-> (- (x p2) (x p1))
-                    (Math/pow 2))
-                (-> (- (y p2) (y p1))
-                    (Math/pow 2)))))
-
 (defn line-given-length
   "Returns p1 and p3 such that p3 is on the same line as p1 and p2,
   but at a distance of given-length from p1.
   Taken from https://math.stackexchange.com/a/1630886"
   [p1 p2 given-length]
-  (let [distance-ratio (/ given-length (line-length p1 p2))]
+  (let [distance-ratio (/ given-length (u/distance p1 p2))]
     [p1
      [(+ (* (- 1 distance-ratio)
             (x p1))
