@@ -8,27 +8,37 @@
 (def canvas-height 900)
 (def canvas-centre [(/ canvas-width 2) (/ canvas-height 2)])
 
+(def x first)
+(def y second)
+
 (defn- generate-tentacle-vertices
-  [start-vertex]
-  (let [tentacle-length (+ 100 (rand-int 100))
-        divided-line    (-> (line/line-given-length start-vertex canvas-centre tentacle-length)
+  [start-vertex end-vertex tentacle-length]
+  (let [divided-line    (-> (line/line-given-length start-vertex end-vertex tentacle-length)
                             (line/divide-line 20))]
     (doall (cons (first divided-line)
                  (line/distort-segments (rest divided-line)
                                         70)))))
 
 (defn- generate-tentacle
-  [start-vertex]
+  [start-vertex end-vertex tentacle-length]
   {:type      :line-list
-   :vertices  (generate-tentacle-vertices start-vertex)
+   :vertices  (generate-tentacle-vertices start-vertex end-vertex tentacle-length)
    :animation nil
    :meta      {:category     :tentacle
                :start-vertex start-vertex}})
 
+(defn- tentacle-length
+  [start-position end-position]
+  (min (+ 100 (rand-int 100))
+       (- (u/distance start-position end-position) 50)))
+
 (defn- animate-tentacle
-  [tentacle-shape current-time animation-time]
+  [tentacle-shape current-time animation-time end-vertex]
   (assoc tentacle-shape
-    :animation {:target-vertices (generate-tentacle-vertices (get-in tentacle-shape [:meta :start-vertex]))
+    :animation {:target-vertices (generate-tentacle-vertices (get-in tentacle-shape [:meta :start-vertex])
+                                                             end-vertex
+                                                             (tentacle-length (get-in tentacle-shape [:meta :start-vertex])
+                                                                              end-vertex))
                 :start-time      current-time
                 :end-time        (+ animation-time current-time)}))
 
@@ -41,9 +51,10 @@
         left-origins   (map #(vector 0 %) (range 150 canvas-height 300))
         right-origins  (map (fn [[x y]]
                               [(+ canvas-width x) y])
-                            left-origins)]
+                            left-origins)
+        tentacle-length (rand-int 100)]
     (doseq [origin (concat top-origins bottom-origins left-origins right-origins)]
-      (vb/add-shape! (generate-tentacle origin)))))
+      (vb/add-shape! (generate-tentacle origin canvas-centre tentacle-length)))))
 
 
 (defonce red-overlay (atom nil))
@@ -75,8 +86,8 @@
                    canvas-width
                    x
                    y
-                   (q/color 255 0 0 (* 255 (/ (- (u/distance [x y] canvas-centre) 300)
-                                              max-distance))))))
+                   (q/color 51 1 105 (* 255 (/ (- (u/distance [x y] canvas-centre) 300)
+                                               max-distance))))))
     (q/update-pixels img)
     img))
 
@@ -97,6 +108,17 @@
            canvas-height
            :add))
 
+(defn- out-of-bounds?
+  [vertex]
+  (not (and (<= 0 (x vertex) canvas-width)
+            (<= 0 (y vertex) canvas-height))))
+
+(defn- tentacle-end-position
+  [mouse-position]
+  (if (out-of-bounds? mouse-position)
+    canvas-centre
+    mouse-position))
+
 (defn setup []
   (q/frame-rate 60)
   (q/background 0 0 0)
@@ -109,9 +131,14 @@
 (defn draw []
   (q/background 0 0 0)
   (blend-overlay)
-  (swap! vb/vertex-buffer
-         vb/update-shapes
-         #(and (= :tentacle (get-in % [:meta :category]))
-               (not (:animation %)))
-         (fn [tentacle]
-           (animate-tentacle tentacle (q/millis) 100))))
+  (let [mouse-position [(q/mouse-x) (q/mouse-y)]]
+    (swap! vb/vertex-buffer
+           vb/update-shapes
+           #(and (= :tentacle (get-in % [:meta :category]))
+                 (not (:animation %)))
+           (fn [tentacle]
+             (animate-tentacle tentacle
+                               (q/millis)
+                               100
+                               (tentacle-end-position mouse-position)))))
+  (q/stroke 96 91 102 125))

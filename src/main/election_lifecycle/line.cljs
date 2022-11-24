@@ -29,7 +29,11 @@
         y-coords     (map (fn [x] (+ (* (slope p1 p2) x)
                                      y-intercept))
                           x-coords)]
-    (zip-coords x-coords y-coords)))
+    ;; The take serves as defensive programming to avoid an
+    ;; infinite lazy sequence in a degenerate case.
+    ;; Checking for division by zero and other cases in the
+    ;; above calculation is just too much work.
+    (take (inc n-segments) (zip-coords x-coords y-coords))))
 
 (defn- add-points [p1 p2]
   [(+ (x p1) (x p2))

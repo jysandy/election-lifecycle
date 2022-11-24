@@ -12,11 +12,11 @@
 
 (defn draw []
   (sketch/draw)
-  (q/fill 255 255 255)
-  (q/text (Math/round (q/current-frame-rate)) 10 20)
   (doseq [shape @vb/vertex-buffer]
     (drawing/draw-shape shape))
-  (vb/cleanup-finished-animations! (q/millis)))
+  (vb/cleanup-finished-animations! (q/millis))
+  (q/fill 255 255 255 255)
+  (q/text (Math/round (q/current-frame-rate)) 10 20))
 
 (def the-sketch (atom nil))
 
