@@ -22,6 +22,7 @@
 
 (defn init []
   (reset! the-sketch (q/sketch
+                       :renderer :p2d
                        :host "canvas-id"
                        :setup sketch/setup
                        :draw draw

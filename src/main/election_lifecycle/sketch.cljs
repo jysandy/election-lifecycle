@@ -48,17 +48,41 @@
 
 (defonce red-overlay (atom nil))
 
-(defn- create-overlay []
-  (let [overlay      (q/create-image canvas-width canvas-height)
-        max-distance (u/distance [0 0] canvas-centre)]
+(defn- set-pixel
+  "Sets a color in a pixel array. Taken from https://p5js.org/reference/#/p5/pixels"
+  [pixel-array display-density width x y color]
+  (dotimes [i display-density]
+    (dotimes [j display-density]
+      (let [index (* 4 (+ (* (+ (* y display-density)
+                                j)
+                             width
+                             display-density)
+                          (+ (* x display-density)
+                             i)))]
+        (aset pixel-array index (q/red color))
+        (aset pixel-array (+ 1 index) (q/green color))
+        (aset pixel-array (+ 2 index) (q/blue color))
+        (aset pixel-array (+ 3 index) (q/alpha color))))))
+
+(defn- draw-gradient [img]
+  (let [max-distance    (u/distance [0 0] canvas-centre)
+        display-density (q/display-density img)
+        pixels          (q/pixels img)]
     (dotimes [x canvas-width]
       (dotimes [y canvas-height]
-        (q/set-pixel overlay
-                     x
-                     y
-                     (q/color 255 0 0 (* 255 (/ (u/distance [x y] canvas-centre)
-                                                max-distance))))))
-    (q/update-pixels overlay)
+        (set-pixel pixels
+                   display-density
+                   canvas-width
+                   x
+                   y
+                   (q/color 255 0 0 (* 255 (/ (- (u/distance [x y] canvas-centre) 300)
+                                              max-distance))))))
+    (q/update-pixels img)
+    img))
+
+(defn- create-overlay []
+  (let [overlay (q/create-image canvas-width canvas-height)]
+    (draw-gradient overlay)
     overlay))
 
 (defn- blend-overlay []
@@ -73,9 +97,6 @@
            canvas-height
            :add))
 
-(defn- render-image []
-  (q/image @red-overlay 0 0))
-
 (defn setup []
   (q/frame-rate 60)
   (q/background 0 0 0)
@@ -83,14 +104,11 @@
   (vb/clear!)
   (init-tentacles)
   (reset! red-overlay (create-overlay))
-  (blend-overlay)
-  ;(render-image)
-  )
+  (blend-overlay))
 
 (defn draw []
   (q/background 0 0 0)
   (blend-overlay)
-  ;(render-image)
   (swap! vb/vertex-buffer
          vb/update-shapes
          #(and (= :tentacle (get-in % [:meta :category]))
