@@ -15,7 +15,7 @@
      (q/lerp (y start) (y end) (/ (- current-time start-time)
                                   (- end-time start-time)))]))
 
-(defn animate-line-list
+(defn animate-vertices
   [start-vertices target-vertices start-time end-time current-time]
   (map (fn [start-vertex end-vertex]
          (animate-vertex start-vertex

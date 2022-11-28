@@ -10,21 +10,28 @@
   [:div
    [:h3 "Election Reddy's tragic past"]])
 
+(defonce font (atom nil))
+
 (defn draw []
   (sketch/draw)
   (doseq [shape @vb/vertex-buffer]
     (drawing/draw-shape shape))
   (vb/cleanup-finished-animations! (q/millis))
   (q/fill 255 255 255 255)
-  (q/text (Math/round (q/current-frame-rate)) 10 20))
+  (q/text-font @font)
+  (q/text (Math/round (q/current-frame-rate)) -590 -430))
 
 (def the-sketch (atom nil))
 
+(defn setup []
+  (reset! font (q/load-font "Roboto-Regular.ttf"))
+  (sketch/setup))
+
 (defn init []
   (reset! the-sketch (q/sketch
-                       :renderer :p2d
+                       :renderer :p3d
                        :host "canvas-id"
-                       :setup sketch/setup
+                       :setup setup
                        :draw draw
                        :size [sketch/canvas-width sketch/canvas-height]))
   (rdom/render [some-component]
