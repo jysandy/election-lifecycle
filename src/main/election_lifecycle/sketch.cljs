@@ -13,6 +13,9 @@
 (def x first)
 (def y second)
 
+(defonce creepy-gradient (atom nil))
+(defonce tie-texture (atom nil))
+
 (defn- generate-tentacle-vertices
   [start-vertex end-vertex tentacle-length]
   (let [divided-line (-> (line/line-given-length start-vertex end-vertex tentacle-length)
@@ -65,45 +68,16 @@
     (doseq [origin (concat top-origins bottom-origins left-origins right-origins)]
       (vb/add-shape! (generate-tentacle origin canvas-centre tentacle-length)))))
 
-(defn- screen-to-world
-  "Converts on-screen pixel coordinates to the 3D coordinate system."
-  [vertex]
-  [(- (x vertex) (/ canvas-width 2))
-   (- (y vertex) (/ canvas-height 2))])
-
-(defn- set-pixel
-  "Sets a color in a pixel array. Taken from https://p5js.org/reference/#/p5/pixels"
-  [pixel-array display-density width x y color]
-  (dotimes [i display-density]
-    (dotimes [j display-density]
-      (let [index (* 4 (+ (* (+ (* y display-density)
-                                j)
-                             width
-                             display-density)
-                          (+ (* x display-density)
-                             i)))]
-        (aset pixel-array index (q/red color))
-        (aset pixel-array (+ 1 index) (q/green color))
-        (aset pixel-array (+ 2 index) (q/blue color))
-        (aset pixel-array (+ 3 index) (q/alpha color))))))
-
 (defn- draw-gradient [img]
-  (let [max-distance    (u/distance canvas-top-left [0 0])
-        display-density (q/display-density img)
-        pixels          (q/pixels img)]
+  (let [max-distance (u/distance canvas-top-left [0 0])]
     (dotimes [x canvas-width]
       (dotimes [y canvas-height]
-        (set-pixel pixels
-                   display-density
-                   canvas-width
-                   x
-                   y
-                   (q/color 51 1 105 (* 255 (/ (- (u/distance [x y] [(/ canvas-width 2) (/ canvas-height 2)]) 300)
-                                               max-distance))))))
+        (q/set-pixel img x y (q/color 51 1 105
+                                      (* 255 (/ (- (u/distance [x y] [(/ canvas-width 2) (/ canvas-height 2)])
+                                                   300)
+                                                max-distance))))))
     (q/update-pixels img)
     img))
-
-(defonce creepy-gradient (atom nil))
 
 (defn- init-creepy-gradient []
   (let [overlay (q/create-image canvas-width canvas-height)]
@@ -111,7 +85,6 @@
     (reset! creepy-gradient overlay)))
 
 (defn- blend-gradient []
-  (q/blend-mode :blend)
   (q/image @creepy-gradient -600 -450))
 
 (defn- out-of-bounds?
@@ -125,7 +98,15 @@
     canvas-centre
     mouse-position))
 
-(defonce tie-texture (atom nil))
+(defn- tie-top [centre-vertex]
+  (let [start-vertex [(- (x centre-vertex) 10) (- (y centre-vertex) 25)]]
+    (-> (polygon/make-polygon
+          [start-vertex
+           [(+ 20 (x start-vertex)) (y start-vertex)]
+           [(+ 25 (x start-vertex)) (- (y start-vertex) 10)]
+           [(- (x start-vertex) 5) (- (y start-vertex) 10)]])
+        (assoc-in [:meta :category] :tie-top)
+        (assoc :texture @tie-texture))))
 
 (defn- tie-bottom [centre-vertex]
   (let [start-vertex [(- (x centre-vertex) 10) (- (y centre-vertex) 25)]]
@@ -136,17 +117,16 @@
            [(+ 10 (x start-vertex)) (+ 90 (y start-vertex))]
            [(- (x start-vertex) 5) (+ 80 (y start-vertex))]])
         (assoc-in [:meta :category] :tie-bottom)
-        (assoc :stroke [0 0 255 255])
-        (assoc :fill [0 0 255 255]))))
+        (assoc :texture @tie-texture))))
 
 (defn- init-tie-texture []
-  (let [gr (q/create-graphics 100 100)]
+  (let [gr (q/create-graphics canvas-width canvas-height)]
     (q/with-graphics gr
       (q/background 0 0 255 255)
       (q/fill 255)
       (q/with-rotation [(/ q/PI 6)]
-        (doseq [y (range -100 100 10)]
-          (q/rect 0 y 200 3))))
+        (doseq [y (range -900 900 10)]
+          (q/rect 0 y 1500 3))))
     (reset! tie-texture gr)))
 
 (defn setup []
@@ -159,10 +139,11 @@
   (init-tie-texture)
   (init-creepy-gradient)
   (blend-gradient)
-  (vb/add-shape! (tie-bottom canvas-centre)))
+  (vb/add-shape! (tie-bottom canvas-centre))
+  (vb/add-shape! (tie-top canvas-centre)))
 
 (defn- mouse-position []
-  (screen-to-world [(q/mouse-x) (q/mouse-y)]))
+  (u/screen-to-world [(q/mouse-x) (q/mouse-y)] canvas-width canvas-height))
 
 (defn draw []
   (q/background 0 0 0)
