@@ -1,4 +1,5 @@
-(ns election-lifecycle.utils)
+(ns election-lifecycle.utils
+  (:require [quil.core :as q]))
 
 (def x first)
 (def y second)
@@ -8,6 +9,15 @@
                     (Math/pow 2))
                 (-> (- (y p2) (y p1))
                     (Math/pow 2)))))
+
+(defn gaussian-jitter
+  [n jitter-factor]
+  (+ n (* jitter-factor (q/random-gaussian))))
+
+(defn gaussian-jitter-vector
+  [v jitter-factors]
+  [(gaussian-jitter (x v) (x jitter-factors))
+   (gaussian-jitter (y v) (y jitter-factors))])
 
 (defn screen-to-world
   "Converts on-screen pixel coordinates to the 3D coordinate system."

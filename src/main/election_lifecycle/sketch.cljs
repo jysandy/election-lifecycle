@@ -3,7 +3,9 @@
             [election-lifecycle.vertex-buffer :as vb]
             [election-lifecycle.line :as line]
             [election-lifecycle.utils :as u]
-            [election-lifecycle.polygon :as polygon]))
+            [election-lifecycle.polygon :as polygon]
+            [election-lifecycle.particles :as particles]
+            [election-lifecycle.vector :as vector]))
 
 (def canvas-width 1200)
 (def canvas-height 900)
@@ -29,7 +31,7 @@
   {:type      :line-list
    :vertices  (generate-tentacle-vertices start-vertex end-vertex tentacle-length)
    :animation nil
-   :stroke    [96 91 102 125]
+   :stroke    [0 0 0 50]
    :fill      [0 0 0 0]
    :meta      {:category     :tentacle
                :start-vertex start-vertex}})
@@ -72,10 +74,11 @@
   (let [max-distance (u/distance canvas-top-left [0 0])]
     (dotimes [x canvas-width]
       (dotimes [y canvas-height]
-        (q/set-pixel img x y (q/color 51 1 105
-                                      (* 255 (/ (- (u/distance [x y] [(/ canvas-width 2) (/ canvas-height 2)])
-                                                   300)
-                                                max-distance))))))
+        (q/set-pixel img x y (q/color
+                               255 0 10
+                               (* 255 (/ (- (u/distance [x y] [(/ canvas-width 2) (/ canvas-height 2)])
+                                            300)
+                                         max-distance))))))
     (q/update-pixels img)
     img))
 
@@ -99,23 +102,23 @@
     mouse-position))
 
 (defn- tie-top [centre-vertex]
-  (let [start-vertex [(- (x centre-vertex) 10) (- (y centre-vertex) 25)]]
+  (let [start-vertex [(- (x centre-vertex) 20) (- (y centre-vertex) 50)]]
     (-> (polygon/make-polygon
           [start-vertex
-           [(+ 20 (x start-vertex)) (y start-vertex)]
-           [(+ 25 (x start-vertex)) (- (y start-vertex) 10)]
-           [(- (x start-vertex) 5) (- (y start-vertex) 10)]])
+           [(+ 40 (x start-vertex)) (y start-vertex)]
+           [(+ 50 (x start-vertex)) (- (y start-vertex) 20)]
+           [(- (x start-vertex) 10) (- (y start-vertex) 20)]])
         (assoc-in [:meta :category] :tie-top)
         (assoc :texture @tie-texture))))
 
 (defn- tie-bottom [centre-vertex]
-  (let [start-vertex [(- (x centre-vertex) 10) (- (y centre-vertex) 25)]]
+  (let [start-vertex [(- (x centre-vertex) 20) (- (y centre-vertex) 50)]]
     (-> (polygon/make-polygon
           [start-vertex
-           [(+ 20 (x start-vertex)) (y start-vertex)]
-           [(+ 25 (x start-vertex)) (+ 80 (y start-vertex))]
-           [(+ 10 (x start-vertex)) (+ 90 (y start-vertex))]
-           [(- (x start-vertex) 5) (+ 80 (y start-vertex))]])
+           [(+ 40 (x start-vertex)) (y start-vertex)]
+           [(+ 50 (x start-vertex)) (+ 160 (y start-vertex))]
+           [(+ 20 (x start-vertex)) (+ 180 (y start-vertex))]
+           [(- (x start-vertex) 10) (+ 160 (y start-vertex))]])
         (assoc-in [:meta :category] :tie-bottom)
         (assoc :texture @tie-texture))))
 
@@ -129,9 +132,35 @@
           (q/rect 0 y 1500 3))))
     (reset! tie-texture gr)))
 
+(defn- spawn-fire [spawn size]
+  ;; flames
+  (particles/add-emitter! 10
+                          (* 5 size)
+                          (* 4 size)
+                          :shrink
+                          {:interpolate {:start [252 50 3 125]
+                                         :end   [252 0 3 0]}}
+                          spawn
+                          [0 (* -20 size)]
+                          (* size 200)
+                          [size (/ size 2.5)]
+                          [(* 3 size) (* 2 size)]
+                          (* size 40))
+  ;; smoke
+  (particles/add-emitter! 10
+                          (* 5 size)
+                          (* 4 size)
+                          :shrink
+                          {:interpolate {:start [30 30 30 25]
+                                         :end   [10 10 10 255]}}
+                          spawn
+                          [0 (* -20 size)]
+                          (* size 400)
+                          [size (/ size 2.5)]
+                          [(* 4 size) (* 2 size)]
+                          (* size 40)))
+
 (defn setup []
-  (q/frame-rate 60)
-  (q/ortho)
   (q/background 0 0 0)
   (q/stroke 255 255 255)
   (vb/clear!)
@@ -140,7 +169,8 @@
   (init-creepy-gradient)
   (blend-gradient)
   (vb/add-shape! (tie-bottom canvas-centre))
-  (vb/add-shape! (tie-top canvas-centre)))
+  (vb/add-shape! (tie-top canvas-centre))
+  (spawn-fire (vector/add canvas-centre [0 150]) 5))
 
 (defn- mouse-position []
   (u/screen-to-world [(q/mouse-x) (q/mouse-y)] canvas-width canvas-height))
@@ -156,5 +186,5 @@
            (fn [tentacle]
              (animate-tentacle tentacle
                                (q/millis)
-                               100
+                               300
                                (tentacle-end-position the-mouse-position))))))

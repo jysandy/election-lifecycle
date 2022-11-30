@@ -1,11 +1,19 @@
 (ns election-lifecycle.drawing
   (:require [quil.core :as q]
-            [election-lifecycle.animation :as animation]))
+            [election-lifecycle.animation :as animation]
+            [election-lifecycle.particles :as particles]))
 
 (defn connect-the-dots
   "Connects points by drawing line segments between them."
   [vertices]
-  (doseq [[p1 p2] (partition 2 1 vertices)]
+  ;; This makes the lines look like thick tentacles.
+  ;; TODO: Render tentacles as polygons rather than using this stroke-weight hack
+  (doseq [[vertices index] (map vector
+                                (partition 2 1 vertices)
+                                (range 0 30))]
+    (q/stroke-weight (- 20 index))
+    (q/line (first vertices) (second vertices)))
+  #_(doseq [[p1 p2] (partition 2 1 vertices)]
     (q/line p1 p2)))
 
 (defn- screen-to-texture-space [[x y]]
@@ -52,3 +60,11 @@
     (when fill
       (apply q/fill fill))
     (draw-polygon animated-vertices texture)))
+
+(defn draw-particle [particle]
+  (let [[x y] (particles/position particle (q/millis))
+        radius (particles/radius particle (q/millis))]
+    (q/no-stroke)
+    (apply q/fill (particles/color particle (q/millis)))
+    (q/blend-mode :add)
+    (q/ellipse x y radius radius)))
