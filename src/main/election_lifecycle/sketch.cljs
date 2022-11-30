@@ -138,7 +138,7 @@
                           (* 5 size)
                           (* 4 size)
                           :shrink
-                          {:interpolate {:start [252 50 3 125]
+                          {:interpolate {:start [252 (* 7 size) 3 25]
                                          :end   [252 0 3 0]}}
                           spawn
                           [0 (* -20 size)]
@@ -152,7 +152,7 @@
                           (* 4 size)
                           :shrink
                           {:interpolate {:start [30 30 30 25]
-                                         :end   [10 10 10 255]}}
+                                         :end   [10 10 10 175]}}
                           spawn
                           [0 (* -20 size)]
                           (* size 400)
@@ -170,7 +170,10 @@
   (blend-gradient)
   (vb/add-shape! (tie-bottom canvas-centre))
   (vb/add-shape! (tie-top canvas-centre))
-  (spawn-fire (vector/add canvas-centre [0 150]) 5))
+  (spawn-fire (vector/add canvas-centre [0 150]) 5)
+  (spawn-fire (vector/add canvas-centre [3.5 -25]) 2)
+  (spawn-fire (vector/add canvas-centre [2 25]) 1)
+  (spawn-fire (vector/add canvas-centre [-6 75]) 2))
 
 (defn- mouse-position []
   (u/screen-to-world [(q/mouse-x) (q/mouse-y)] canvas-width canvas-height))
