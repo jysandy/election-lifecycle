@@ -21,20 +21,27 @@
 
 (defn- init-tentacles
   []
-  (let [top-origins     (map #(vector % (- (/ canvas-height 2)))
-                             (range (+ (- (/ canvas-width 2))
-                                       150)
-                                    (/ canvas-width 2)
-                                    300))
-        bottom-origins  (map (fn [[x y]]
-                               [x (+ canvas-height y)])
-                             top-origins)
-        left-origins    (map #(vector (- (/ canvas-width 2)) %)
-                             (range -300 (/ canvas-height 2) 150))
-        right-origins   (map (fn [[x y]]
-                               [(+ canvas-width x) y])
-                             left-origins)
-        tentacle-length (rand-int 100)]
+  (let [offscreen-origin-offset 30
+        top-origins             (map #(vector % (- (- (/ canvas-height 2))
+                                                   offscreen-origin-offset))
+                                     (range (+ (- (/ canvas-width 2))
+                                               150)
+                                            (/ canvas-width 2)
+                                            300))
+        bottom-origins          (map (fn [[x y]]
+                                       [x (+ y
+                                             canvas-height
+                                             (* 2 offscreen-origin-offset))])
+                                     top-origins)
+        left-origins            (map #(vector (- (- (/ canvas-width 2))
+                                                 offscreen-origin-offset) %)
+                                     (range -300 (/ canvas-height 2) 150))
+        right-origins           (map (fn [[x y]]
+                                       [(+ x
+                                           canvas-width
+                                           (* 2 offscreen-origin-offset)) y])
+                                     left-origins)
+        tentacle-length         (rand-int 160)]
     (doseq [origin (concat top-origins bottom-origins left-origins right-origins)]
       (vb/add-shape! (tentacle/generate-tentacle origin canvas-centre tentacle-length)))))
 

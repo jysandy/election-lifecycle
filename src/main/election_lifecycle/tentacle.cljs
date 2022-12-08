@@ -12,7 +12,7 @@
 
 (defn generate-tentacle-vertices
   [base-vertex end-vertex tentacle-length]
-  (let [n-segments              10
+  (let [n-segments              12
         tip-vertex              (-> (vector/sub end-vertex base-vertex)
                                     (vector/set-length tentacle-length)
                                     (vector/add base-vertex))
@@ -58,7 +58,7 @@
 
 (defn tentacle-length
   [start-position end-position]
-  (min (+ 100 (rand-int 100))
+  (min (+ 150 (rand-int 100))
        (- (u/distance start-position end-position) 50)))
 
 (defn animate-tentacle
