@@ -52,7 +52,7 @@
    :vertices  (generate-tentacle-vertices base-vertex end-vertex tentacle-length)
    :animation nil
    :stroke    nil
-   :fill      [0 0 0 255]
+   :fill      [0 0 0 180]
    :meta      {:category     :tentacle
                :start-vertex base-vertex}})
 
