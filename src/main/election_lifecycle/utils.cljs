@@ -14,6 +14,11 @@
   [n jitter-factor]
   (+ n (* jitter-factor (q/random-gaussian))))
 
+(defn gaussian-jitter-seq
+  [jitter-factor]
+  (lazy-seq
+    (cons (* jitter-factor (q/random-gaussian)) (gaussian-jitter-seq jitter-factor))))
+
 (defn gaussian-jitter-vector
   [v jitter-factors]
   [(gaussian-jitter (x v) (x jitter-factors))

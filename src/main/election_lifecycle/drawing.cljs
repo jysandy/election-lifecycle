@@ -3,33 +3,35 @@
             [election-lifecycle.animation :as animation]
             [election-lifecycle.particles :as particles]))
 
+(def x first)
+(def y second)
+
 (defn connect-the-dots
   "Connects points by drawing line segments between them."
   [vertices]
-  ;; This makes the lines look like thick tentacles.
-  ;; TODO: Render tentacles as polygons rather than using this stroke-weight hack
-  (doseq [[vertices index] (map vector
-                                (partition 2 1 vertices)
-                                (range 0 30))]
-    (q/stroke-weight (- 20 index))
-    (q/line (first vertices) (second vertices)))
-  #_(doseq [[p1 p2] (partition 2 1 vertices)]
+  (doseq [[p1 p2] (partition 2 1 vertices)]
     (q/line p1 p2)))
 
 (defn- screen-to-texture-space [[x y]]
   [(q/map-range x (- (/ (q/width) 2)) (/ (q/width) 2) 0 1)
    (q/map-range y (- (/ (q/height) 2)) (/ (q/height) 2) 0 1)])
 
-(defn draw-polygon
+(defn draw-vertex-list
   ([vertices]
-   (draw-polygon vertices nil))
-  ([vertices texture]
-   (q/begin-shape)
+   (draw-vertex-list vertices nil nil))
+  ([vertices mode]
+   (draw-vertex-list vertices mode nil))
+  ([vertices mode texture]
+   (if mode
+     (q/begin-shape mode)
+     (q/begin-shape))
    (when texture
      (q/texture texture))
    (doseq [[x y] vertices]
-     (apply q/vertex x y (screen-to-texture-space [x y])))
-   (q/end-shape)))
+     (if texture
+       (apply q/vertex x y (screen-to-texture-space [x y]))
+       (q/vertex x y)))
+   (q/end-shape :close)))
 
 (defmulti draw-shape :type)
 
@@ -41,8 +43,9 @@
                                                         (:end-time animation)
                                                         (q/millis))
                             vertices)]
-    (when stroke
-      (apply q/stroke stroke))
+    (if stroke
+      (apply q/stroke stroke)
+      (q/no-stroke))
     (when fill
       (apply q/fill fill))
     (connect-the-dots animated-vertices)))
@@ -55,11 +58,34 @@
                                                         (:end-time animation)
                                                         (q/millis))
                             vertices)]
-    (when stroke
-      (apply q/stroke stroke))
+    (if stroke
+      (apply q/stroke stroke)
+      (q/no-stroke))
     (when fill
       (apply q/fill fill))
-    (draw-polygon animated-vertices texture)))
+    (draw-vertex-list animated-vertices nil texture)))
+
+(defmethod draw-shape :quad-strip [{:keys [vertices animation stroke fill ]}]
+  (let [animated-vertices (if animation
+                            (animation/animate-vertices vertices
+                                                        (:target-vertices animation)
+                                                        (:start-time animation)
+                                                        (:end-time animation)
+                                                        (q/millis))
+                            vertices)]
+    (if stroke
+      (apply q/stroke stroke)
+      (q/no-stroke))
+    (when fill
+      (apply q/fill fill))
+    ;; Vertices should be zig-zagged, not clockwise or counterclockwise.
+    (doseq [[v1 v2 v3 v4] (partition 4 2 animated-vertices)]
+      (q/begin-shape)
+      (q/vertex (x v1) (y v1))
+      (q/vertex (x v2) (y v2))
+      (q/vertex (x v4) (y v4))
+      (q/vertex (x v3) (y v3))
+      (q/end-shape :close))))
 
 (defn draw-particle [particle]
   (let [[x y] (particles/position particle (q/millis))

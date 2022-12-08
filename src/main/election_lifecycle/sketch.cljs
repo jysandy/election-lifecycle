@@ -5,7 +5,8 @@
             [election-lifecycle.utils :as u]
             [election-lifecycle.polygon :as polygon]
             [election-lifecycle.particles :as particles]
-            [election-lifecycle.vector :as vector]))
+            [election-lifecycle.vector :as vector]
+            [election-lifecycle.tentacle :as tentacle]))
 
 (def canvas-width 1200)
 (def canvas-height 900)
@@ -17,39 +18,6 @@
 
 (defonce creepy-gradient (atom nil))
 (defonce tie-texture (atom nil))
-
-(defn- generate-tentacle-vertices
-  [start-vertex end-vertex tentacle-length]
-  (let [divided-line (-> (line/line-given-length start-vertex end-vertex tentacle-length)
-                         (line/divide-line 20))]
-    (doall (cons (first divided-line)
-                 (line/distort-segments (rest divided-line)
-                                        70)))))
-
-(defn- generate-tentacle
-  [start-vertex end-vertex tentacle-length]
-  {:type      :line-list
-   :vertices  (generate-tentacle-vertices start-vertex end-vertex tentacle-length)
-   :animation nil
-   :stroke    [0 0 0 50]
-   :fill      [0 0 0 0]
-   :meta      {:category     :tentacle
-               :start-vertex start-vertex}})
-
-(defn- tentacle-length
-  [start-position end-position]
-  (min (+ 100 (rand-int 100))
-       (- (u/distance start-position end-position) 50)))
-
-(defn- animate-tentacle
-  [tentacle-shape current-time animation-time end-vertex]
-  (assoc tentacle-shape
-    :animation {:target-vertices (generate-tentacle-vertices (get-in tentacle-shape [:meta :start-vertex])
-                                                             end-vertex
-                                                             (tentacle-length (get-in tentacle-shape [:meta :start-vertex])
-                                                                              end-vertex))
-                :start-time      current-time
-                :end-time        (+ animation-time current-time)}))
 
 (defn- init-tentacles
   []
@@ -68,7 +36,7 @@
                              left-origins)
         tentacle-length (rand-int 100)]
     (doseq [origin (concat top-origins bottom-origins left-origins right-origins)]
-      (vb/add-shape! (generate-tentacle origin canvas-centre tentacle-length)))))
+      (vb/add-shape! (tentacle/generate-tentacle origin canvas-centre tentacle-length)))))
 
 (defn- draw-gradient [img]
   (let [max-distance (u/distance canvas-top-left [0 0])]
@@ -170,10 +138,10 @@
   (blend-gradient)
   (vb/add-shape! (tie-bottom canvas-centre))
   (vb/add-shape! (tie-top canvas-centre))
-  (spawn-fire (vector/add canvas-centre [0 150]) 5)
-  (spawn-fire (vector/add canvas-centre [3.5 -25]) 2)
-  (spawn-fire (vector/add canvas-centre [2 25]) 1)
-  (spawn-fire (vector/add canvas-centre [-6 75]) 2))
+  (spawn-fire (vector/add canvas-centre [4 110]) 4)
+  (spawn-fire (vector/add canvas-centre [3.5 -25]) 3.2)
+  (spawn-fire (vector/add canvas-centre [2 25]) 1.5)
+  (spawn-fire (vector/add canvas-centre [-10 50]) 2))
 
 (defn- mouse-position []
   (u/screen-to-world [(q/mouse-x) (q/mouse-y)] canvas-width canvas-height))
@@ -187,7 +155,7 @@
            #(and (= :tentacle (get-in % [:meta :category]))
                  (not (:animation %)))
            (fn [tentacle]
-             (animate-tentacle tentacle
-                               (q/millis)
-                               300
-                               (tentacle-end-position the-mouse-position))))))
+             (tentacle/animate-tentacle tentacle
+                                        (q/millis)
+                                        300
+                                        (tentacle-end-position the-mouse-position))))))
