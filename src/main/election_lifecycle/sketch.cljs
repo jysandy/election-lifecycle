@@ -5,12 +5,8 @@
             [election-lifecycle.polygon :as polygon]
             [election-lifecycle.particles :as particles]
             [election-lifecycle.vector :as vector]
-            [election-lifecycle.tentacle :as tentacle]))
-
-(def canvas-width 1200)
-(def canvas-height 900)
-(def canvas-centre [0 0])
-(def canvas-top-left [(- (/ canvas-width 2)) (- (/ canvas-height 2))])
+            [election-lifecycle.tentacle :as tentacle]
+            [election-lifecycle.config :as c]))
 
 (def x first)
 (def y second)
@@ -21,39 +17,27 @@
 (defn- init-tentacles
   []
   (let [offscreen-origin-offset 30
-        top-origins             (map #(vector % (- (- (/ canvas-height 2))
+        top-origins             (map #(vector % (- (- (/ c/canvas-height 2))
                                                    offscreen-origin-offset))
-                                     (range (+ (- (/ canvas-width 2))
+                                     (range (+ (- (/ c/canvas-width 2))
                                                150)
-                                            (/ canvas-width 2)
+                                            (/ c/canvas-width 2)
                                             300))
         bottom-origins          (map (fn [[x y]]
                                        [x (+ y
-                                             canvas-height
+                                             c/canvas-height
                                              (* 2 offscreen-origin-offset))])
                                      top-origins)
-        left-origins            (map #(vector (- (- (/ canvas-width 2))
+        left-origins            (map #(vector (- (- (/ c/canvas-width 2))
                                                  offscreen-origin-offset) %)
-                                     (range -300 (/ canvas-height 2) 150))
+                                     (range -300 (/ c/canvas-height 2) 150))
         right-origins           (map (fn [[x y]]
                                        [(+ x
-                                           canvas-width
+                                           c/canvas-width
                                            (* 2 offscreen-origin-offset)) y])
-                                     left-origins)
-        tentacle-length         (rand-int 160)]
+                                     left-origins)]
     (doseq [origin (concat top-origins bottom-origins left-origins right-origins)]
-      (vb/add-shape! (tentacle/generate-tentacle origin canvas-centre tentacle-length)))))
-
-(defn- out-of-bounds?
-  [vertex]
-  (not (and (<= (- (/ canvas-width 2)) (x vertex) (/ canvas-width 2))
-            (<= (- (/ canvas-height 2)) (y vertex) (/ canvas-height 2)))))
-
-(defn- tentacle-end-position
-  [mouse-position]
-  (if (out-of-bounds? mouse-position)
-    canvas-centre
-    mouse-position))
+      (vb/add-shape! (tentacle/generate-tentacle origin)))))
 
 (defn- tie-top [centre-vertex]
   (let [start-vertex [(- (x centre-vertex) 20) (- (y centre-vertex) 50)]]
@@ -77,7 +61,7 @@
         (assoc :texture @tie-texture))))
 
 (defn- init-tie-texture []
-  (let [gr (q/create-graphics canvas-width canvas-height)]
+  (let [gr (q/create-graphics c/canvas-width c/canvas-height)]
     (q/with-graphics gr
       (q/background 0 0 255 255)
       (q/fill 255)
@@ -117,14 +101,14 @@
 (defn draw-creepy-gradient []
   (when (q/loaded? @gradient-shader)
     (q/shader @gradient-shader)
-    (q/set-uniform @gradient-shader "u_resolution" (array canvas-width canvas-height))
-    (q/set-uniform @gradient-shader "max_distance" (u/distance canvas-top-left [0 0]))
+    (q/set-uniform @gradient-shader "u_resolution" (array c/canvas-width c/canvas-height))
+    (q/set-uniform @gradient-shader "max_distance" (u/distance c/canvas-top-left [0 0]))
     (q/set-uniform @gradient-shader "min_distance" (+ 350 (* 50 (js/Math.sin (* 0.002 (q/millis))))))
     (q/blend-mode :add)
-    (q/rect (x canvas-top-left)
-            (y canvas-top-left)
-            canvas-width
-            canvas-height)
+    (q/rect (x c/canvas-top-left)
+            (y c/canvas-top-left)
+            c/canvas-width
+            c/canvas-height)
     (q/blend-mode :blend)
     (.resetShader (q/current-graphics))))
 
@@ -153,29 +137,16 @@
   (vb/clear!)
   (init-tentacles)
   (reset! gradient-shader (q/load-shader "gradient.frag" "gradient.vert"))
-  (vb/add-shape! (tie-bottom canvas-centre))
-  (vb/add-shape! (tie-top canvas-centre))
-  (spawn-fire (vector/add canvas-centre [4 110]) 4)
-  (spawn-fire (vector/add canvas-centre [3.5 -25]) 3.2)
-  (spawn-fire (vector/add canvas-centre [2 25]) 1.5)
-  (spawn-fire (vector/add canvas-centre [-10 50]) 2))
-
-(defn- mouse-position []
-  (u/screen-to-world [(q/mouse-x) (q/mouse-y)] canvas-width canvas-height))
+  (vb/add-shape! (tie-bottom c/canvas-centre))
+  (vb/add-shape! (tie-top c/canvas-centre))
+  (spawn-fire (vector/add c/canvas-centre [4 110]) 4)
+  (spawn-fire (vector/add c/canvas-centre [3.5 -25]) 3.2)
+  (spawn-fire (vector/add c/canvas-centre [2 25]) 1.5)
+  (spawn-fire (vector/add c/canvas-centre [-10 50]) 2))
 
 (defn draw []
   (q/background 0 0 0)
-  (draw-creepy-gradient)
-  (let [the-mouse-position (mouse-position)]
-    (swap! vb/vertex-buffer
-           vb/update-shapes
-           #(and (= :tentacle (get-in % [:meta :category]))
-                 (not (:animation %)))
-           (fn [tentacle]
-             (tentacle/animate-tentacle tentacle
-                                        (q/millis)
-                                        300
-                                        (tentacle-end-position the-mouse-position))))))
+  (draw-creepy-gradient))
 
 (defn mouse-clicked []
   (spray-blood-from-tie!))

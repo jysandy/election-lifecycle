@@ -36,11 +36,11 @@
 (defmulti draw-shape :type)
 
 (defmethod draw-shape :line-list [{:keys [vertices animation stroke fill]}]
-  (let [animated-vertices (if animation
+  (let [animated-vertices (if (:current animation)
                             (animation/animate-vertices vertices
-                                                        (:target-vertices animation)
-                                                        (:start-time animation)
-                                                        (:end-time animation)
+                                                        (:target-vertices (:current animation))
+                                                        (:start-time (:current animation))
+                                                        (:end-time (:current animation))
                                                         (q/millis))
                             vertices)]
     (if stroke
@@ -51,11 +51,11 @@
     (connect-the-dots animated-vertices)))
 
 (defmethod draw-shape :polygon [{:keys [vertices animation stroke fill texture]}]
-  (let [animated-vertices (if animation
+  (let [animated-vertices (if (:current animation)
                             (animation/animate-vertices vertices
-                                                        (:target-vertices animation)
-                                                        (:start-time animation)
-                                                        (:end-time animation)
+                                                        (:target-vertices (:current animation))
+                                                        (:start-time (:current animation))
+                                                        (:end-time (:current animation))
                                                         (q/millis))
                             vertices)]
     (if stroke
@@ -65,12 +65,12 @@
       (apply q/fill fill))
     (draw-vertex-list animated-vertices nil texture)))
 
-(defmethod draw-shape :quad-strip [{:keys [vertices animation stroke fill ]}]
-  (let [animated-vertices (if animation
+(defmethod draw-shape :quad-strip [{:keys [vertices animation stroke fill]}]
+  (let [animated-vertices (if (:current animation)
                             (animation/animate-vertices vertices
-                                                        (:target-vertices animation)
-                                                        (:start-time animation)
-                                                        (:end-time animation)
+                                                        (:target-vertices (:current animation))
+                                                        (:start-time (:current animation))
+                                                        (:end-time (:current animation))
                                                         (q/millis))
                             vertices)]
     (if stroke

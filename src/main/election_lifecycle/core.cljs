@@ -3,7 +3,8 @@
             [election-lifecycle.drawing :as drawing]
             [election-lifecycle.vertex-buffer :as vb]
             [election-lifecycle.sketch :as sketch]
-            [election-lifecycle.particles :as particles])
+            [election-lifecycle.particles :as particles]
+            [election-lifecycle.config :as c])
   (:require-macros [quil.core]))
 
 (defonce font (atom nil))
@@ -16,7 +17,7 @@
     (drawing/draw-shape shape))
   (doseq [particle @particles/particle-buffer]
     (drawing/draw-particle particle))
-  (vb/cleanup-finished-animations! (q/millis))
+  (vb/process-animations! (q/millis))
   (particles/garbage-collect-particles! (q/millis))
   (q/stroke 255 255 255 255)
   (q/fill 255 255 255 255)
@@ -38,4 +39,4 @@
                        :setup setup
                        :draw draw
                        :mouse-clicked sketch/mouse-clicked
-                       :size [sketch/canvas-width sketch/canvas-height])))
+                       :size [c/canvas-width c/canvas-height])))

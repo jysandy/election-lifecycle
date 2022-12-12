@@ -1,5 +1,6 @@
 (ns election-lifecycle.utils
-  (:require [quil.core :as q]))
+  (:require [quil.core :as q]
+            [election-lifecycle.config :as c]))
 
 (def x first)
 (def y second)
@@ -34,3 +35,12 @@
   [vertex canvas-width canvas-height]
   [(+ (x vertex) (/ canvas-width 2))
    (+ (y vertex) (/ canvas-height 2))])
+
+(defn mouse-position []
+  (screen-to-world [(q/mouse-x) (q/mouse-y)] c/canvas-width c/canvas-height))
+
+(defn out-of-bounds?
+  [vertex]
+  (not (and (<= (- (/ c/canvas-width 2)) (x vertex) (/ c/canvas-width 2))
+            (<= (- (/ c/canvas-height 2)) (y vertex) (/ c/canvas-height 2)))))
+
