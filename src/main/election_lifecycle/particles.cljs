@@ -77,6 +77,26 @@
   (swap! particle-buffer (comp vec (partial remove
                                             (partial dead? current-time)))))
 
+(defn spray-particles!
+  [spawn
+   volume
+   radius
+   size-update
+   color-config
+   velocity
+   lifespan
+   spawn-jitter-factors
+   velocity-jitter-factors
+   lifespan-jitter]
+  (dotimes [_ volume]
+    (add-particle! (q/millis)
+                   (u/gaussian-jitter-vector spawn spawn-jitter-factors)
+                   (u/gaussian-jitter-vector velocity velocity-jitter-factors)
+                   radius
+                   (u/gaussian-jitter lifespan lifespan-jitter)
+                   size-update
+                   color-config)))
+
 (defn clear-emitters! []
   (doseq [interval @emitters]
     (js/clearInterval interval))

@@ -120,11 +120,29 @@
     (q/set-uniform @gradient-shader "u_resolution" (array canvas-width canvas-height))
     (q/set-uniform @gradient-shader "max_distance" (u/distance canvas-top-left [0 0]))
     (q/set-uniform @gradient-shader "min_distance" (+ 350 (* 50 (js/Math.sin (* 0.002 (q/millis))))))
+    (q/blend-mode :add)
     (q/rect (x canvas-top-left)
             (y canvas-top-left)
             canvas-width
             canvas-height)
+    (q/blend-mode :blend)
     (.resetShader (q/current-graphics))))
+
+(defn spray-blood! [spawn]
+  (particles/spray-particles! spawn
+                              2000
+                              5
+                              :shrink
+                              {:interpolate {:start [51 5 5 120]
+                                             :end   [51 5 5 0]}}
+                              (vector/set-length (q/random-2d) 250)
+                              800
+                              [10 10]
+                              [100 100]
+                              50))
+
+(defn spray-blood-from-tie! []
+  (spray-blood! [(q/random -10 10) (q/random -20 100)]))
 
 (defn setup []
   (q/pixel-density 1) ; Necessary so that the shader works on mac screens.
@@ -158,3 +176,6 @@
                                         (q/millis)
                                         300
                                         (tentacle-end-position the-mouse-position))))))
+
+(defn mouse-clicked []
+  (spray-blood-from-tie!))

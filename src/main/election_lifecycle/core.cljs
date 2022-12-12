@@ -37,4 +37,5 @@
                        :host "canvas-id"
                        :setup setup
                        :draw draw
+                       :mouse-clicked sketch/mouse-clicked
                        :size [sketch/canvas-width sketch/canvas-height])))

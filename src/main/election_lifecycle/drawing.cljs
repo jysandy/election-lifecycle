@@ -93,4 +93,6 @@
     (q/no-stroke)
     (apply q/fill (particles/color particle (q/millis)))
     (q/blend-mode :add)
-    (q/ellipse x y radius radius)))
+    (q/ellipse x y radius radius)
+    (q/blend-mode :blend)
+    ))
