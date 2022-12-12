@@ -39,26 +39,59 @@
     (doseq [origin (concat top-origins bottom-origins left-origins right-origins)]
       (vb/add-shape! (tentacle/generate-tentacle origin)))))
 
-(defn- tie-top [centre-vertex]
-  (let [start-vertex [(- (x centre-vertex) 20) (- (y centre-vertex) 50)]]
-    (-> (polygon/make-polygon
-          [start-vertex
-           [(+ 40 (x start-vertex)) (y start-vertex)]
-           [(+ 50 (x start-vertex)) (- (y start-vertex) 20)]
-           [(- (x start-vertex) 10) (- (y start-vertex) 20)]])
-        (assoc-in [:meta :category] :tie-top)
-        (assoc :texture @tie-texture))))
+(defn- tie-top-vertices [centre-vertex size]
+  (let [start-vertex [(- (x centre-vertex) (* 10 size)) (- (y centre-vertex) (* 25 size))]]
+    [start-vertex
+     [(+ (* 20 size) (x start-vertex)) (y start-vertex)]
+     [(+ (* 25 size) (x start-vertex)) (- (y start-vertex) (* 10 size))]
+     [(- (x start-vertex) (* 5 size)) (- (y start-vertex) (* 10 size))]]))
 
-(defn- tie-bottom [centre-vertex]
-  (let [start-vertex [(- (x centre-vertex) 20) (- (y centre-vertex) 50)]]
-    (-> (polygon/make-polygon
-          [start-vertex
-           [(+ 40 (x start-vertex)) (y start-vertex)]
-           [(+ 50 (x start-vertex)) (+ 160 (y start-vertex))]
-           [(+ 20 (x start-vertex)) (+ 180 (y start-vertex))]
-           [(- (x start-vertex) 10) (+ 160 (y start-vertex))]])
-        (assoc-in [:meta :category] :tie-bottom)
-        (assoc :texture @tie-texture))))
+(defn- tie-top
+  [centre-vertex size]
+  (-> (polygon/make-polygon
+        (tie-top-vertices centre-vertex size))
+      (assoc-in [:meta :category] :tie-top)
+      (assoc :texture @tie-texture)
+      (assoc :animation {:current nil
+                         :steps   {:sequence [{:target-vertices-fn (constantly (tie-top-vertices centre-vertex (+ 0.5 size)))
+                                               :duration           75} ; grow
+                                              {:target-vertices-fn (constantly (tie-top-vertices centre-vertex (+ 0.5 size)))
+                                               :duration           75} ; pause
+                                              {:target-vertices-fn (constantly (tie-top-vertices centre-vertex (+ 1 size)))
+                                               :duration           75} ; grow
+                                              {:target-vertices-fn (constantly (tie-top-vertices centre-vertex size))
+                                               :duration           150} ; shrink
+                                              {:target-vertices-fn (constantly (tie-top-vertices centre-vertex size))
+                                               :duration           500} ; pause
+                                              ]
+                                   :repeat   true}})))
+
+(defn- tie-bottom-vertices [centre-vertex size]
+  (let [start-vertex [(- (x centre-vertex) (* 10 size)) (- (y centre-vertex) (* size 25))]]
+    [start-vertex
+     [(+ (* 20 size) (x start-vertex)) (y start-vertex)]
+     [(+ (* 25 size) (x start-vertex)) (+ (* 80 size) (y start-vertex))]
+     [(+ (* 10 size) (x start-vertex)) (+ (* 90 size) (y start-vertex))]
+     [(- (x start-vertex) (* 5 size)) (+ (* 80 size) (y start-vertex))]]))
+
+(defn- tie-bottom [centre-vertex size]
+  (-> (polygon/make-polygon
+        (tie-bottom-vertices centre-vertex size))
+      (assoc-in [:meta :category] :tie-bottom)
+      (assoc :texture @tie-texture)
+      (assoc :animation {:current nil
+                         :steps   {:sequence [{:target-vertices-fn (constantly (tie-bottom-vertices centre-vertex (+ 0.5 size)))
+                                               :duration           75} ; grow
+                                              {:target-vertices-fn (constantly (tie-bottom-vertices centre-vertex (+ 0.5 size)))
+                                               :duration           75} ; pause
+                                              {:target-vertices-fn (constantly (tie-bottom-vertices centre-vertex (+ 1 size)))
+                                               :duration           75} ; grow
+                                              {:target-vertices-fn (constantly (tie-bottom-vertices centre-vertex size))
+                                               :duration           150} ; shrink
+                                              {:target-vertices-fn (constantly (tie-bottom-vertices centre-vertex size))
+                                               :duration           500} ; wait
+                                              ]
+                                   :repeat   true}})))
 
 (defn- init-tie-texture []
   (let [gr (q/create-graphics c/canvas-width c/canvas-height)]
@@ -137,8 +170,8 @@
   (vb/clear!)
   (init-tentacles)
   (reset! gradient-shader (q/load-shader "gradient.frag" "gradient.vert"))
-  (vb/add-shape! (tie-bottom c/canvas-centre))
-  (vb/add-shape! (tie-top c/canvas-centre))
+  (vb/add-shape! (tie-bottom c/canvas-centre 2))
+  (vb/add-shape! (tie-top c/canvas-centre 2))
   (spawn-fire (vector/add c/canvas-centre [4 110]) 4)
   (spawn-fire (vector/add c/canvas-centre [3.5 -25]) 3.2)
   (spawn-fire (vector/add c/canvas-centre [2 25]) 1.5)
