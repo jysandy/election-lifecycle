@@ -10,6 +10,15 @@
   [line-points jitter-factors horizontal]
   (map #(vector/directional-jitter % jitter-factors horizontal) line-points))
 
+(defn- split-angle
+  "Returns a vector that divides the angle between the two given vectors in half."
+  [v1 v2]
+  (if (zero? (vector/cross-magnitude v1
+                                     v2))
+    (-> (vector/normals v2)
+        first)
+    (vector/sub v1 v2)))
+
 (defn generate-tentacle-vertices
   [base-vertex end-vertex tentacle-length]
   (let [n-segments              12
@@ -28,15 +37,11 @@
         right-base              (vector/add base-vertex centre-to-base2)
         body-vertices           (->> (partition 3 1 tentacle-spine-vertices)
                                      (map-indexed (fn [i [a b c]]
-                                                    (let [rib-vector-distance (q/map-range (- n-segments i 1) 0 n-segments 0 tentacle-width)
-                                                          spine-to-edge1      (if (zero? (vector/cross-magnitude (vector/sub c b)
-                                                                                                                 (vector/sub b a)))
-                                                                                (-> (vector/normals (vector/sub b a))
-                                                                                    first
-                                                                                    (vector/set-length (/ rib-vector-distance 2)))
-                                                                                (-> (vector/add c (vector/scale b -2) a)
-                                                                                    (vector/set-length (/ rib-vector-distance 2))))
-                                                          spine-to-edge2      (vector/scale spine-to-edge1 -1)
+                                                    (let [rib-width      (q/map-range (- n-segments i 1) 0 n-segments 0 tentacle-width)
+                                                          spine-to-edge1 (vector/set-length (split-angle (vector/sub c b)
+                                                                                                         (vector/sub b a))
+                                                                                            (/ rib-width 2))
+                                                          spine-to-edge2 (vector/scale spine-to-edge1 -1)
                                                           [spine-to-left-edge-vertex
                                                            spine-to-right-edge-vertex] (vector/sort-left-to-right
                                                                                          base-to-tip

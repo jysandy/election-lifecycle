@@ -1,15 +1,10 @@
 (ns election-lifecycle.core
-  (:require [reagent.dom :as rdom]
-            [quil.core :as q]
+  (:require [quil.core :as q]
             [election-lifecycle.drawing :as drawing]
             [election-lifecycle.vertex-buffer :as vb]
             [election-lifecycle.sketch :as sketch]
             [election-lifecycle.particles :as particles])
   (:require-macros [quil.core]))
-
-(defn some-component []
-  [:div
-   [:h3 "Election Reddy's tragic past"]])
 
 (defonce font (atom nil))
 
@@ -42,6 +37,4 @@
                        :host "canvas-id"
                        :setup setup
                        :draw draw
-                       :size [sketch/canvas-width sketch/canvas-height]))
-  (rdom/render [some-component]
-               (.getElementById js/document "app")))
+                       :size [sketch/canvas-width sketch/canvas-height])))

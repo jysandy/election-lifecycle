@@ -1,7 +1,6 @@
 (ns election-lifecycle.sketch
   (:require [quil.core :as q]
             [election-lifecycle.vertex-buffer :as vb]
-            [election-lifecycle.line :as line]
             [election-lifecycle.utils :as u]
             [election-lifecycle.polygon :as polygon]
             [election-lifecycle.particles :as particles]
@@ -16,8 +15,8 @@
 (def x first)
 (def y second)
 
-(defonce creepy-gradient (atom nil))
 (defonce tie-texture (atom nil))
+(defonce gradient-shader (atom nil))
 
 (defn- init-tentacles
   []
@@ -44,26 +43,6 @@
         tentacle-length         (rand-int 160)]
     (doseq [origin (concat top-origins bottom-origins left-origins right-origins)]
       (vb/add-shape! (tentacle/generate-tentacle origin canvas-centre tentacle-length)))))
-
-(defn- draw-gradient [img]
-  (let [max-distance (u/distance canvas-top-left [0 0])]
-    (dotimes [x canvas-width]
-      (dotimes [y canvas-height]
-        (q/set-pixel img x y (q/color
-                               255 0 10
-                               (* 255 (/ (- (u/distance [x y] [(/ canvas-width 2) (/ canvas-height 2)])
-                                            300)
-                                         max-distance))))))
-    (q/update-pixels img)
-    img))
-
-(defn- init-creepy-gradient []
-  (let [overlay (q/create-image canvas-width canvas-height)]
-    (draw-gradient overlay)
-    (reset! creepy-gradient overlay)))
-
-(defn- blend-gradient []
-  (q/image @creepy-gradient -600 -450))
 
 (defn- out-of-bounds?
   [vertex]
@@ -135,14 +114,27 @@
                           [(* 4 size) (* 2 size)]
                           (* size 40)))
 
+(defn draw-creepy-gradient []
+  (when (q/loaded? @gradient-shader)
+    (q/shader @gradient-shader)
+    (q/set-uniform @gradient-shader "u_resolution" (array canvas-width canvas-height))
+    (q/set-uniform @gradient-shader "max_distance" (u/distance canvas-top-left [0 0]))
+    (q/set-uniform @gradient-shader "min_distance" (+ 350 (* 50 (js/Math.sin (* 0.002 (q/millis))))))
+    (q/rect (x canvas-top-left)
+            (y canvas-top-left)
+            canvas-width
+            canvas-height)
+    (.resetShader (q/current-graphics))))
+
 (defn setup []
+  (q/pixel-density 1) ; Necessary so that the shader works on mac screens.
+  (init-tie-texture)
+  (q/image @tie-texture 0 0) ; The tie texture doesn't render unless this is done and I have no idea why
   (q/background 0 0 0)
   (q/stroke 255 255 255)
   (vb/clear!)
   (init-tentacles)
-  (init-tie-texture)
-  (init-creepy-gradient)
-  (blend-gradient)
+  (reset! gradient-shader (q/load-shader "gradient.frag" "gradient.vert"))
   (vb/add-shape! (tie-bottom canvas-centre))
   (vb/add-shape! (tie-top canvas-centre))
   (spawn-fire (vector/add canvas-centre [4 110]) 4)
@@ -155,7 +147,7 @@
 
 (defn draw []
   (q/background 0 0 0)
-  (blend-gradient)
+  (draw-creepy-gradient)
   (let [the-mouse-position (mouse-position)]
     (swap! vb/vertex-buffer
            vb/update-shapes

@@ -29,3 +29,8 @@
   [vertex canvas-width canvas-height]
   [(- (x vertex) (/ canvas-width 2))
    (- (y vertex) (/ canvas-height 2))])
+
+(defn world-to-screen
+  [vertex canvas-width canvas-height]
+  [(+ (x vertex) (/ canvas-width 2))
+   (+ (y vertex) (/ canvas-height 2))])
