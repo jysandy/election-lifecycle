@@ -13,11 +13,11 @@
                          :end-time        100
                          :step-index      1}
                ;; The next steps of the animation.
-               :steps   {:sequence [{:target-vertices-fn (fn [])
-                                     :duration           300}
-                                    {:target-vertices-fn (constantly [1 2 3 4])
-                                     :duration           300}]
-                         :repeat   false ; setting repeat to true will make all steps repeat
+               :path    {:steps  [{:target-vertices-fn (fn [])
+                                   :duration           300}
+                                  {:target-vertices-fn (constantly [1 2 3 4])
+                                   :duration           300}]
+                         :repeat false ; setting repeat to true will make all steps repeat
                          }}
    :meta      {:category :tentacle}}
 
@@ -62,10 +62,10 @@
       (assoc :vertices (:target-vertices (:current animation)))))
 
 (defn- pickup-next-animation [{:keys [animation] :as shape} current-time]
-  (let [{:keys [sequence repeat]} (:steps animation)
+  (let [{:keys [steps repeat]} (:path animation)
         next-step-index (mod (inc (:step-index (:current animation)))
-                             (count sequence))
-        next-step       (nth sequence next-step-index)]
+                             (count steps))
+        next-step       (nth steps next-step-index)]
     (if (and (zero? next-step-index)
              (not repeat))
       (-> shape
@@ -88,19 +88,19 @@
 
              (and (:current animation)
                   (current-animation-ended? shape current-time)
-                  (nil? (:steps animation))) (-> shape
-                                                 finish-animation
-                                                 (assoc :animation nil))
+                  (nil? (:path animation))) (-> shape
+                                                finish-animation
+                                                (assoc :animation nil))
 
              (and (:current animation)
                   (current-animation-ended? shape current-time)
-                  (some? (:steps animation))) (-> shape
-                                                  finish-animation
-                                                  (pickup-next-animation current-time))
+                  (some? (:path animation))) (-> shape
+                                                 finish-animation
+                                                 (pickup-next-animation current-time))
 
              (and (:current animation)
                   (not (current-animation-ended? shape current-time))
-                  (some? (:steps animation))) shape
+                  (some? (:path animation))) shape
 
              (and (not (:current animation))
-                  (some? (:steps animation))) (pickup-next-animation shape current-time)))))
+                  (some? (:path animation))) (pickup-next-animation shape current-time)))))

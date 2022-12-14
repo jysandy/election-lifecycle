@@ -69,14 +69,14 @@
                                           (tentacle-length base-vertex
                                                            (tentacle-end-position c/canvas-centre)))
    :animation {:current nil
-               :steps   {:sequence [{:target-vertices-fn (fn []
-                                                           (generate-tentacle-vertices
-                                                             base-vertex
-                                                             (tentacle-end-position (u/mouse-position))
-                                                             (tentacle-length base-vertex
-                                                                              (tentacle-end-position (u/mouse-position)))))
-                                     :duration           300}]
-                         :repeat   true}}
+               :path    {:steps  [{:target-vertices-fn (fn []
+                                                         (generate-tentacle-vertices
+                                                           base-vertex
+                                                           (tentacle-end-position (u/mouse-position))
+                                                           (tentacle-length base-vertex
+                                                                            (tentacle-end-position (u/mouse-position)))))
+                                   :duration           300}]
+                         :repeat true}}
    :stroke    nil
    :fill      [0 0 0 180]
    :meta      {:category :tentacle}})

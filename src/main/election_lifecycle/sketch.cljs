@@ -53,18 +53,18 @@
       (assoc-in [:meta :category] :tie-top)
       (assoc :texture @tie-texture)
       (assoc :animation {:current nil
-                         :steps   {:sequence [{:target-vertices-fn (constantly (tie-top-vertices centre-vertex (+ 0.5 size)))
-                                               :duration           75} ; grow
-                                              {:target-vertices-fn (constantly (tie-top-vertices centre-vertex (+ 0.5 size)))
-                                               :duration           75} ; pause
-                                              {:target-vertices-fn (constantly (tie-top-vertices centre-vertex (+ 1 size)))
-                                               :duration           75} ; grow
-                                              {:target-vertices-fn (constantly (tie-top-vertices centre-vertex size))
-                                               :duration           150} ; shrink
-                                              {:target-vertices-fn (constantly (tie-top-vertices centre-vertex size))
-                                               :duration           500} ; pause
-                                              ]
-                                   :repeat   true}})))
+                         :path    {:steps  [{:target-vertices-fn (constantly (tie-top-vertices centre-vertex (+ 0.5 size)))
+                                             :duration           75} ; grow
+                                            {:target-vertices-fn (constantly (tie-top-vertices centre-vertex (+ 0.5 size)))
+                                             :duration           75} ; pause
+                                            {:target-vertices-fn (constantly (tie-top-vertices centre-vertex (+ 1 size)))
+                                             :duration           75} ; grow
+                                            {:target-vertices-fn (constantly (tie-top-vertices centre-vertex size))
+                                             :duration           150} ; shrink
+                                            {:target-vertices-fn (constantly (tie-top-vertices centre-vertex size))
+                                             :duration           500} ; pause
+                                            ]
+                                   :repeat true}})))
 
 (defn- tie-bottom-vertices [centre-vertex size]
   (let [start-vertex [(- (x centre-vertex) (* 10 size)) (- (y centre-vertex) (* size 25))]]
@@ -80,18 +80,18 @@
       (assoc-in [:meta :category] :tie-bottom)
       (assoc :texture @tie-texture)
       (assoc :animation {:current nil
-                         :steps   {:sequence [{:target-vertices-fn (constantly (tie-bottom-vertices centre-vertex (+ 0.5 size)))
-                                               :duration           75} ; grow
-                                              {:target-vertices-fn (constantly (tie-bottom-vertices centre-vertex (+ 0.5 size)))
-                                               :duration           75} ; pause
-                                              {:target-vertices-fn (constantly (tie-bottom-vertices centre-vertex (+ 1 size)))
-                                               :duration           75} ; grow
-                                              {:target-vertices-fn (constantly (tie-bottom-vertices centre-vertex size))
-                                               :duration           150} ; shrink
-                                              {:target-vertices-fn (constantly (tie-bottom-vertices centre-vertex size))
-                                               :duration           500} ; wait
-                                              ]
-                                   :repeat   true}})))
+                         :path    {:steps  [{:target-vertices-fn (constantly (tie-bottom-vertices centre-vertex (+ 0.5 size)))
+                                             :duration           75} ; grow
+                                            {:target-vertices-fn (constantly (tie-bottom-vertices centre-vertex (+ 0.5 size)))
+                                             :duration           75} ; pause
+                                            {:target-vertices-fn (constantly (tie-bottom-vertices centre-vertex (+ 1 size)))
+                                             :duration           75} ; grow
+                                            {:target-vertices-fn (constantly (tie-bottom-vertices centre-vertex size))
+                                             :duration           150} ; shrink
+                                            {:target-vertices-fn (constantly (tie-bottom-vertices centre-vertex size))
+                                             :duration           500} ; pause
+                                            ]
+                                   :repeat true}})))
 
 (defn- init-tie-texture []
   (let [gr (q/create-graphics c/canvas-width c/canvas-height)]
