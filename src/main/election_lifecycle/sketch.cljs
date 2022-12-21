@@ -135,6 +135,7 @@
 (defn draw-creepy-gradient []
   (when (q/loaded? @gradient-shader)
     (q/shader @gradient-shader)
+    (q/set-uniform @gradient-shader "u_display_density" (.pixelDensity (q/current-graphics)))
     (q/set-uniform @gradient-shader "u_resolution" (array c/canvas-width c/canvas-height))
     (q/set-uniform @gradient-shader "max_distance" (u/distance c/canvas-top-left [0 0]))
     (q/set-uniform @gradient-shader "min_distance" (+ 350 (* 50 (js/Math.sin (* 0.002 (q/millis))))))
@@ -163,7 +164,6 @@
   (spray-blood! [(q/random -10 10) (q/random -20 100)]))
 
 (defn setup []
-  (q/pixel-density 1) ; Necessary so that the shader works on mac screens.
   (audio/init-background-track!)
   (init-tie-texture)
   (q/image @tie-texture 0 0) ; The tie texture doesn't render unless this is done and I have no idea why
