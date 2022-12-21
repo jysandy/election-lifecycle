@@ -6,6 +6,7 @@
             [election-lifecycle.particles :as particles]
             [election-lifecycle.vector :as vector]
             [election-lifecycle.tentacle :as tentacle]
+            [election-lifecycle.audio :as audio]
             [election-lifecycle.config :as c]))
 
 (def x first)
@@ -163,6 +164,7 @@
 
 (defn setup []
   (q/pixel-density 1) ; Necessary so that the shader works on mac screens.
+  (audio/init-background-track!)
   (init-tie-texture)
   (q/image @tie-texture 0 0) ; The tie texture doesn't render unless this is done and I have no idea why
   (q/background 0 0 0)
