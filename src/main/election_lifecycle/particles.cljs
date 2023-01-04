@@ -48,17 +48,14 @@
 (defn color [{:keys [color-config spawn-time end-of-life] :as _particle} current-time-ms]
   (cond
     (:constant color-config) (:constant color-config)
-    (:interpolate color-config) (let [color-obj (q/lerp-color (apply q/color (get-in color-config [:interpolate :start]))
-                                                              (apply q/color (get-in color-config [:interpolate :end]))
-                                                              (q/map-range current-time-ms
-                                                                           spawn-time
-                                                                           end-of-life
-                                                                           0
-                                                                           1))]
-                                  [(q/red color-obj)
-                                   (q/green color-obj)
-                                   (q/blue color-obj)
-                                   (q/alpha color-obj)])))
+    (:interpolate color-config) (map (fn [v1 v2]
+                                       (q/lerp v1 v2 (q/map-range current-time-ms
+                                                                  spawn-time
+                                                                  end-of-life
+                                                                  0
+                                                                  1)))
+                                     (get-in color-config [:interpolate :start])
+                                     (get-in color-config [:interpolate :end]))))
 
 (defn dead? [current-time {:keys [end-of-life] :as _particle}]
   (<= end-of-life current-time))

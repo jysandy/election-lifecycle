@@ -1,27 +1,42 @@
 (ns election-lifecycle.audio)
 
-(defonce audio-element (atom nil))
+(defonce audio-context (atom nil))
+(defonce source (atom nil))
+(defonce audio-buffer (atom nil))
 (defonce playing? (atom false))
 
 (defn start-playing! []
+  (reset! source (.createBufferSource @audio-context))
+  (set! (.-buffer @source) @audio-buffer)
+  (.connect @source (.-destination @audio-context))
+  (set! (.-loop @source) true)
   (reset! playing? true)
-  (.play @audio-element))
+  (.start @source 0))
 
 (defn stop-playing! []
-  (reset! playing? false))
+  (reset! playing? false)
+  (.stop @source 0))
 
 (defn init-background-track!
   []
-  (reset! audio-element (js/document.querySelector "audio"))
-  (.addEventListener @audio-element "ended" (fn []
-                                              (when @playing?
-                                                (.play @audio-element))))
-  (.addEventListener (js/document.getElementById "play-pause-button")
-                     "click"
-                     (fn []
-                       (if @playing?
-                         (stop-playing!)
-                         (start-playing!)))))
+  (reset! audio-context (js/AudioContext.))
+  (let [request (js/XMLHttpRequest.)]
+    (.open request "GET", "background-noise.wav", true)
+    (set! (.-responseType request) "arraybuffer")
+    (set! (.-onload request) (fn []
+                               (.decodeAudioData @audio-context
+                                                 (.-response request)
+                                                 (fn [buffer]
+                                                   (reset! audio-buffer buffer)))
+                               (.addEventListener (js/document.getElementById "play-pause-button")
+                                                  "click"
+                                                  (fn []
+                                                    (when (= (.-state @audio-context) "suspended")
+                                                      (.resume @audio-context))
+                                                    (if @playing?
+                                                      (stop-playing!)
+                                                      (start-playing!))))))
+    (.send request)))
 
 
 
