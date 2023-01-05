@@ -1,9 +1,9 @@
 (ns election-lifecycle.core
   (:require [quil.core :as q]
-            [election-lifecycle.drawing :as drawing]
-            [election-lifecycle.vertex-buffer :as vb]
+            [tranquil.drawing :as drawing]
+            [tranquil.vertex-buffer :as vb]
             [election-lifecycle.sketch :as sketch]
-            [election-lifecycle.particles :as particles]
+            [tranquil.particles :as particles]
             [election-lifecycle.config :as c])
   (:require-macros [quil.core]))
 

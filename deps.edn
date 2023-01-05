@@ -1,6 +1,7 @@
 {:paths ["src/main" "src/test"]
- :deps  {reagent/reagent {:mvn/version "1.1.1"}
-         quil/quil       {:mvn/version "3.1.0"}}
+ :deps  {quil/quil         {:mvn/version "3.1.0"}
+         tranquil/tranquil {:git/url "https://github.com/jysandy/tranquil.git"
+                            :git/sha "5f76a166915a30a871fa6a1711a1b72a19b74e27"}}
  :aliases
  {:shadow-cljs
   {:extra-deps {thheller/shadow-cljs {:mvn/version "2.20.12"}}

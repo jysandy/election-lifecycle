@@ -1,10 +1,10 @@
 (ns election-lifecycle.sketch
   (:require [quil.core :as q]
-            [election-lifecycle.vertex-buffer :as vb]
-            [election-lifecycle.utils :as u]
-            [election-lifecycle.polygon :as polygon]
-            [election-lifecycle.particles :as particles]
-            [election-lifecycle.vector :as vector]
+            [tranquil.vertex-buffer :as vb]
+            [tranquil.utils :as u]
+            [tranquil.polygon :as polygon]
+            [tranquil.particles :as particles]
+            [tranquil.vector :as vector]
             [election-lifecycle.tentacle :as tentacle]
             [election-lifecycle.audio :as audio]
             [election-lifecycle.config :as c]))
@@ -106,7 +106,8 @@
 
 (defn- spawn-fire [spawn size]
   ;; flames
-  (particles/add-emitter! 10
+  (particles/add-emitter! "canvas-id"
+                          10
                           (* 5 size)
                           (* 4 size)
                           :shrink
@@ -119,7 +120,8 @@
                           [(* 3 size) (* 2 size)]
                           (* size 40))
   ;; smoke
-  (particles/add-emitter! 10
+  (particles/add-emitter! "canvas-id"
+                          10
                           (* 5 size)
                           (* 4 size)
                           :shrink

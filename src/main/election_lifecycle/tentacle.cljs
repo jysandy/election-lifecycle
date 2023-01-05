@@ -1,9 +1,9 @@
 (ns election-lifecycle.tentacle
-  (:require [election-lifecycle.utils :as u]
+  (:require [tranquil.utils :as u]
             [election-lifecycle.config :as c]
             [quil.core :as q]
-            [election-lifecycle.line :as line]
-            [election-lifecycle.vector :as vector]))
+            [tranquil.line :as line]
+            [tranquil.vector :as vector]))
 
 (defn- distort-spine
   [line-points jitter-factors horizontal]
