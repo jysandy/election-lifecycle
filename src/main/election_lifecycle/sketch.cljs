@@ -7,7 +7,8 @@
             [tranquil.vector :as vector]
             [election-lifecycle.tentacle :as tentacle]
             [election-lifecycle.audio :as audio]
-            [election-lifecycle.config :as c]))
+            [election-lifecycle.config :as c])
+  (:require-macros [quil.core]))
 
 (def x first)
 (def y second)

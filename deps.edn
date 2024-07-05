@@ -1,7 +1,8 @@
 {:paths ["src/main" "src/test"]
- :deps  {quil/quil         {:mvn/version "3.1.0"}
-         tranquil/tranquil {:git/url "https://github.com/jysandy/tranquil.git"
-                            :git/sha "5f76a166915a30a871fa6a1711a1b72a19b74e27"}}
+ :deps  {org.clojure/clojurescript {:mvn/version "1.11.132"}
+         quil/quil                 {:mvn/version "3.1.0"}
+         tranquil/tranquil         {:git/url "https://github.com/jysandy/tranquil.git"
+                                    :git/sha "7071ac5d845dcf554e3896d03d1736316e7eb3c6"}}
  :aliases
  {:shadow-cljs
   {:extra-deps {thheller/shadow-cljs {:mvn/version "2.20.12"}}
